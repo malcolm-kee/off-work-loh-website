@@ -1,3 +1,7 @@
+import { Button } from '@chakra-ui/react';
+import { getLocalTimeZone, today } from '@internationalized/date';
+import { useMutation } from '@tanstack/react-query';
+import { DateRangePicker, DateRangePickerProps } from 'components/date-picker';
 import { LoginLogoutButton } from 'components/login-logout-button';
 import { useSession } from 'modules/auth';
 import Head from 'next/head';
@@ -6,8 +10,24 @@ import { TextField } from '../components/text-field';
 import { TextareaField } from '../components/textarea-field';
 
 export default function CreateEventPage() {
-	const [submitted, setSubmitted] = React.useState(false);
 	const { data } = useSession();
+
+	const { mutate, isSuccess, isLoading } = useMutation((data: any) => {
+		return fetch('/api/create-event', {
+			method: 'POST',
+			body: JSON.stringify(data),
+			headers: {
+				'Content-Type': 'application/json',
+			},
+		}).then((res) => {
+			if (!res.ok) {
+				throw new Error('Fail to create');
+			}
+		});
+	});
+
+	const [todayDate] = React.useState(() => today(getLocalTimeZone()));
+	const [date, setDate] = React.useState<DateRangePickerProps['value']>(undefined);
 
 	return (
 		<div className="max-w-xl mx-auto p-6">
@@ -17,7 +37,7 @@ export default function CreateEventPage() {
 			<h1 className="text-4xl font-extrabold mb-6">Create Event</h1>
 			{!data ? (
 				<LoginLogoutButton />
-			) : submitted ? (
+			) : isSuccess ? (
 				<p>Submitted!</p>
 			) : (
 				<form
@@ -26,48 +46,46 @@ export default function CreateEventPage() {
 						const data = new FormData(ev.target as HTMLFormElement);
 						const body = Object.fromEntries(data.entries());
 
-						fetch('/api/create-event', {
-							method: 'POST',
-							body: JSON.stringify(body),
-							headers: {
-								'Content-Type': 'application/json',
-							},
-						}).then((res) => {
-							if (res.ok) {
-								setSubmitted(true);
-							}
-						});
+						if (date) {
+							const startDate = date.start.toString();
+							const endDate = date.end.toString();
+							mutate({
+								...body,
+								startDate,
+								endDate,
+							});
+						}
 					}}
 				>
 					<div className="flex flex-col gap-5">
 						<TextField
 							label="Hosted by"
 							value={data.user.name || data.user.email || 'Unknown'}
-							readOnly
+							isReadOnly
 						/>
-						<TextField label="Event name" id="name" name="name" required />
+						<TextField label="Event name" id="name" name="name" isRequired isDisabled={isLoading} />
 						<input type="hidden" name="host" value={data.user.discordAccountId} />
-						<div className="grid grid-cols-2 gap-3">
-							<TextField
-								type="datetime-local"
-								label="Start date"
-								name="startDate"
-								id="startDate"
-								required
+						<div className="relative">
+							<DateRangePicker
+								granularity="minute"
+								minValue={todayDate}
+								onChange={setDate}
+								label="Date/time"
+								isDisabled={isLoading}
 							/>
-							<TextField
-								type="datetime-local"
-								label="End date"
-								name="endDate"
-								id="endDate"
-								required
-							/>
+							<input className="sr-only" value={date ? date.start.toString() : ''} required />
 						</div>
-						<TextareaField label="How to RSVP" id="howToRsvp" name="howToRsvp" required />
+						<TextareaField
+							label="How to RSVP"
+							id="howToRsvp"
+							name="howToRsvp"
+							isRequired
+							isDisabled={isLoading}
+						/>
 						<div>
-							<button type="submit" className="bg-sky-600 text-white w-full px-4 py-2 rounded">
+							<Button colorScheme="teal" type="submit" width="full" isLoading={isLoading}>
 								Add
-							</button>
+							</Button>
 						</div>
 					</div>
 				</form>

@@ -1,7 +1,7 @@
+import { FormControl, FormLabel, Input, InputProps } from '@chakra-ui/react';
 import * as React from 'react';
-import { clsx } from 'clsx';
 
-export interface TextFieldProps extends React.ComponentPropsWithoutRef<'input'> {
+export interface TextFieldProps extends InputProps {
 	label?: string;
 }
 
@@ -10,23 +10,15 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(func
 	forwardedRef
 ) {
 	return (
-		<div className="flex items-center gap-2">
-			{label && (
-				<label htmlFor={props.id} className={'flex-shrink-0 text-sm min-w-[80px]'}>
-					{label}
-				</label>
-			)}
-			<input
+		<FormControl id={props.id} isRequired={props.isRequired} isDisabled={props.isDisabled}>
+			{label && <FormLabel>{label}</FormLabel>}
+			<Input
 				type="text"
 				{...props}
-				className={clsx(
-					'w-full border-gray-300 rounded',
-					'focus:outline-none focus:border-gray-300 focus:ring focus:ring-offset-2 focus:ring-sky-500 focus:ring-opacity-20',
-					(props.readOnly || props.disabled) && 'bg-gray-200',
-					props.className
-				)}
+				_readOnly={{ backgroundColor: 'gray.200' }}
+				_disabled={{ backgroundColor: 'gray.200' }}
 				ref={forwardedRef}
 			/>
-		</div>
+		</FormControl>
 	);
 });
