@@ -88,19 +88,20 @@ export const DesktopNav = (props: BoxProps) => {
 				<Box key={navItem.label}>
 					<Popover trigger={'hover'} placement={'bottom-start'}>
 						<PopoverTrigger>
-							<Link
-								p={2}
-								href={navItem.href ?? '#'}
-								fontSize={'sm'}
-								fontWeight={500}
-								color={primaryLinkColor}
-								_hover={{
-									textDecoration: 'none',
-									color: primaryLinkHoverColor,
-								}}
-							>
-								{navItem.label}
-							</Link>
+							<NextLink href={navItem.href!} passHref={true}>
+								<Link
+									p={2}
+									fontSize={'sm'}
+									fontWeight={500}
+									color={primaryLinkColor}
+									_hover={{
+										textDecoration: 'none',
+										color: primaryLinkHoverColor,
+									}}
+								>
+									{navItem.label}
+								</Link>
+							</NextLink>
 						</PopoverTrigger>
 
 						{navItem.children && (
@@ -237,11 +238,9 @@ const MobileNavItem = ({ href, children, label }: NavItem) => {
 					align={'start'}
 				>
 					{children &&
-						children.map((child, i) => (
-							<NextLink href={child.href!} passHref={true} key={i}>
-								<Link key={child.label} py={2}>
-									{child.label}
-								</Link>
+						children.map((child) => (
+							<NextLink href={child.href!} passHref={true} key={child.label}>
+								<Link py={2}>{child.label}</Link>
 							</NextLink>
 						))}
 				</Stack>
